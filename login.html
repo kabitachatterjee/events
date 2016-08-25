@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Meetup planner</title>
+    <!--<link rel="stylesheet" type="text/css" media="screen" href="demo.css" />-->
+    <link rel="stylesheet" type="text/css" media="screen" href="css/login.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<!-- Bootstrap core CSS  and jS-->
+        <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+        
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script src="lib/underscore-min.js" type="text/javascript"></script>
+	<script src="lib/backbone.js" type="text/javascript"></script>
+	<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+	<script src="lib/backbone.validation.js" type="text/javascript"></script>
+	
+</head>
+<body>
+	
+        <div id="nav-header">
+      <span><a class="navbar-brand" href="demo.html"><img src="css/images/calendar.png" alt="logo"></a></span>
+      <span><a href="demo.html" id="findEventButton">Find an Event</a></span>
+      <!--<span><a href="#" id="addEventButton">Start an Event</a></span>-->
+      <span><a href="past.html">Past Events</a></span>
+      <span><a href="#">Log in/Sign up</a></span>
+      <!--<span><a href="#">Sign Up</a></span>-->
+    </div>
+    <div class="form">
+      
+      <ul class="tab-group">
+        <li class="tab active"><a href="#signup">Sign Up</a></li>
+        <li class="tab"><a href="#login">Log In</a></li>
+      </ul>
+      <div id="message">
+      </div>
+      <div class="tab-content">
+        <div id="signup">   
+          <h1>Sign Up for Free</h1>
+          
+          <form action="#" method="post">
+          
+          <div class="top-row">
+            <div class="field-wrap">
+              <label>
+                First Name<span class="req">*</span>
+              </label>
+              <input type="text" required autocomplete="off" autofocus= "on" />
+            </div>
+        
+            <div class="field-wrap">
+              <label>
+                Last Name<span class="req">*</span>
+              </label>
+              <input type="text" required autocomplete="off"/>
+            </div>
+          </div>
+
+          <div class="field-wrap">
+            <label>
+              Email Address<span class="req">*</span>
+            </label>
+            <input id="signemail" type="email" required autocomplete="off"/>
+          </div>
+          
+          <div class="field-wrap">
+            <label>
+              Set A Password<span class="req">*</span>
+            </label>
+            <input id="password" type="password" required autocomplete="off"/>
+          </div>
+          
+          <button type="submit" id="start" class="button button-block"/>Get Started</button>
+          
+          </form>
+
+        </div>
+        
+        <div id="login">   
+          <h1>Welcome Back!</h1>
+          
+          <form action="#" method="post">
+          
+            <div class="field-wrap">
+            <label>
+              Email Address<span class="req">*</span>
+            </label>
+            <input id="email" type="email" required autocomplete="off" autofocus="on"/>
+          </div>
+          
+          <div class="field-wrap">
+            <label>
+              Password<span class="req">*</span>
+            </label>
+            <input id="pass" type="password" required autocomplete="off"/>
+          </div>
+          
+          <p class="forgot"><a href="#">Forgot Password?</a></p>
+          
+          <button id="log" type="submit" class="button button-block"/>Log In</button>
+          
+          </form>
+
+        </div>
+        
+      </div><!-- tab-content -->
+      
+</div> <!-- /form -->
+
+
+<script type="text/javascript">
+$('.form').find('input, textarea').on('keyup blur focus', function (e) {
+  
+  var $this = $(this),
+      label = $this.prev('label');
+
+	  if (e.type === 'keyup') {
+			if ($this.val() === '') {
+          label.removeClass('active highlight');
+        } else {
+          label.addClass('active highlight');
+        }
+    } else if (e.type === 'blur') {
+    	if( $this.val() === '' ) {
+    		label.removeClass('active highlight'); 
+			} else {
+		    label.removeClass('highlight');   
+			}   
+    } else if (e.type === 'focus') {
+      
+      if( $this.val() === '' ) {
+    		label.removeClass('highlight'); 
+			} 
+      else if( $this.val() !== '' ) {
+		    label.addClass('highlight');
+			}
+    }
+
+});
+
+$('.tab a').on('click', function (e) {
+  
+  e.preventDefault();
+  
+  $(this).parent().addClass('active');
+  $(this).parent().siblings().removeClass('active');
+  
+  target = $(this).attr('href');
+
+  $('.tab-content > div').not(target).hide();
+  
+  $(target).fadeIn(600);
+  
+});
+
+var ref = new Firebase("https://niceto.firebaseio.com");
+var authData = ref.getAuth();
+
+if (authData) {
+  console.log("Authenticated user with uid:", authData.uid);
+}
+else{
+  console.log("You need to login first");
+}
+
+$('#log').on('click', function(e){
+  e.preventDefault();
+  console.log('hello');
+  $('#message').html('');
+var email = $('#email').val();
+console.log(email);
+var pwd = $('#pass').val();
+console.log(pwd);
+var ref = new Firebase("https://niceto.firebaseio.com");
+ref.authWithPassword({
+  email    : email,
+  password : pwd
+}, function(error, authData) {
+  if (error) {
+    switch (error.code) {
+      case "INVALID_EMAIL":
+        var message = "The specified user account email is invalid.";
+        console.log("The specified user account email is invalid.");
+        $('#message').append('<p>'+message+'</p>');
+        break;
+      case "INVALID_PASSWORD":
+        var message = "The specified user account password is incorrect.";
+        console.log("The specified user account password is incorrect.");
+        $('#message').append('<p>'+message+'</p>');
+        break;
+      case "INVALID_USER":
+        var message = "The specified user account does not exist.";
+        console.log("The specified user account does not exist.");
+        $('#message').append('<p>'+message+'</p>');
+        break;
+      default:
+        var message = ("Error logging user in:"+ error);
+        console.log("Error logging user in:", error);
+        $('#message').append('<p>'+message+'</p>');
+    }
+  } else {
+    console.log("Authenticated successfully with payload:", authData);
+    window.location = "demo.html";
+  }
+
+},
+{remember: "sessionOnly"});
+});
+
+// we would probably save a profile when we register new users on our site
+// we could also read the profile to see if it's null
+// here we will just simulate this with an isNewUser boolean
+$('#start').on('click', function(e){
+  e.preventDefault();
+  console.log('hello');
+  $('#message').html('');
+  var email = $('#signemail').val();
+  var pwd = $('#password').val();
+  var ref = new Firebase("https://niceto.firebaseio.com");
+ref.createUser({
+  email    : email,
+  password : pwd
+}, function(error, userData) {
+  if (error) {
+    var message =  error;
+    console.log("Error creating user:", error);
+    $('#message').append('<p>'+message+'</p>');
+  } else {
+    var message = "Signup successful.Please login with your new credentials";
+    console.log("Successfully created user account with uid:", userData.uid);
+    $('#message').append('<p>'+message+'</p>');
+    //window.location.reload();
+  }
+});
+// we would probably save a profile when we register new users on our site
+// we could also read the profile to see if it's null
+// here we will just simulate this with an isNewUser boolean
+var isNewUser = true;
+
+//var ref = new Firebase("https://<YOUR-FIREBASE-APP>.firebaseio.com");
+ref.onAuth(function(authData) {
+  if (authData && isNewUser) {
+    // save the user's profile into the database so we can list users,
+    // use them in Security and Firebase Rules, and show profiles
+    ref.child("users").child(authData.uid).set({
+      provider: authData.provider,
+      name: getName(authData)
+    });
+  }
+});
+
+// find a suitable name based on the meta info given by each provider
+function getName(authData) {
+  switch(authData.provider) {
+     case 'password':
+       return authData.password.email.replace(/@.*/, '');
+     case 'twitter':
+       return authData.twitter.displayName;
+     case 'facebook':
+       return authData.facebook.displayName;
+  }
+}
+
+});
+</script>
+
+</body>
+</html>

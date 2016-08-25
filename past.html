@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Meetup planner</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="css/demo.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script src="lib/underscore-min.js" type="text/javascript"></script>
+	<script src="lib/backbone.js" type="text/javascript"></script>
+	<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+	<script src="lib/backbone.validation.js" type="text/javascript"></script>
+	
+</head>
+<body>
+	
+        <div id="nav-header">
+      <span><a class="navbar-brand" href="demo.html"><img src="css/images/calendar.png" alt="logo"></a></span>
+      <span><a href="demo.html" id="findEventButton">Find an Event</a></span>
+      <span><a href="#" id="addEventButton">Start an Event</a></span>
+      <span><a href="past.html">Past Events</a></span>
+      <span><a href="login.html" id="login">Log in/Sign up</a></span>
+      <!--<span><a href="#">Sign Up</a></span>-->
+    </div>
+    <div id="search-bar" class="center">
+    	<form>
+    		<label for="venue">Location: </label><input id="venue" type="text" onFocus="geolocate()" autofocus="on" class="clearable" />
+    	<label for="category">Event Type:</label><input list="types" id ="category" name="eventTypes" />
+          <datalist id="types">
+         <option value="Birthdays/Weddings/Anniversaries">
+           <option value="Tech-talk">
+         <option value="Hackathon">
+          <option value="Workshop">
+          </datalist>
+
+<button id="search">Search</button>
+</form>
+        </div>
+	<div id="container">
+		<div id="content">
+			<ul id="events">
+			</ul>
+		</div>
+		
+	</div>
+	
+
+
+<script type="text/javascript">
+$(document).ready(
+	//var currentDate = new Date();
+	function()
+	{     
+		var currentDate = new Date();
+		_.templateSettings = {interpolate : /\{\{(.+?)\}\}/g};
+		$("#addEventButton").click(
+			function( event)
+			{
+				event.preventDefault();
+				event.stopPropagation();
+				
+				// Create the modal view
+				var model = new EventModel();
+				var view = new AddEventView( {model:model});
+				view.render().showModal({
+						x: event.pageX,
+						y: event.pageY
+					});
+			});
+       //var currentDate = new Date();
+		_events = new EventCollection();
+       
+		$.ajax({
+        url: 'https://niceto.firebaseio.com/events.json',
+        dataType: 'jsonp',
+        success: function(data){
+        	for (var i=0; i< data.length; i++){
+        		var stDate = new Date(data[i].startDate);
+            if((data[i].deleted_flg === 0) && (stDate < currentDate)){
+             // events.push(data[i]);
+             $("#events").html('');
+              _events.add( new EventModel(data[i]));
+            }
+          }
+
+		_eventList = new EventListView(
+			{
+				collection: _events,
+				el: "#events"
+			});
+
+		_eventList.render();
+	}
+	});
+
+});
+var ref = new Firebase("https://niceto.firebaseio.com");
+var authData = ref.getAuth();
+
+if (authData) {
+	$('#addEventButton').show();
+	$('#login').hide();
+  console.log("Authenticated user with uid:", authData.uid);
+}
+else{
+	$('#addEventButton').hide();
+	$('#login').show();
+  console.log("You need to login first");
+}
+$("#search").click(
+	function(event){
+		event.preventDefault();
+		event.stopPropagation();
+		
+		//$("#events").html('');
+		_events = new EventCollection();
+        var myLoc = $("#venue").val();
+        var venue = myLoc.split(',');
+        var category = $("#category").val();
+        var currentDate = new Date();
+        console.log(category);
+        console.log(venue[0]);
+		$.ajax({
+        url: 'https://niceto.firebaseio.com/events.json',
+        dataType: 'jsonp',
+        success: function(data){
+        	console.log(data);
+        	for (var i=0; i< data.length; i++){
+        		var stDate = new Date(data[i].startDate);
+        		
+            if( ((data[i].location == venue[0]) &&(stDate < currentDate)) || ((data[i].type == category) &&(stDate < currentDate)) ){
+             
+             console.log(data[i]);
+             $("#events").html('');
+
+              _events.add( new EventModel(data[i]));
+              
+            }
+            else {
+               console.log('hello');
+            }
+          }
+          
+
+		_eventList = new EventListView(
+			{
+				collection: _events,
+				el: "#events"
+			});
+        
+		_eventList.render();
+	}
+	});
+
+
+	});
+
+</script>
+<script src="js/Backbone.ModalDialog.js" type="text/javascript"></script>
+	<script src="js/demo.js" type="text/javascript"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUkUqR2r2dfMNgribh4X8XjorobxHTMYA&signed_in=true&libraries=places&callback=initAutocomplete"></script>
+
+</body>
+</html>
