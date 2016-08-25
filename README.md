@@ -5,7 +5,7 @@
 Download the repo and run the demo.html file in your chrome browser.
 
 Basic Description:
-This project aims to craete an event planning application using **Backbone.js** framework<br/>
+This project aims to create an event planning application using **Backbone.js** framework<br/>
 The application allows users to signup, login and browse events by location and category. Logged-in users can also create events.<br/>
 Users who do not login can just browse events(upcoming and past events)<br/>
 The application uses Firebase to store data in the backend<br/>
